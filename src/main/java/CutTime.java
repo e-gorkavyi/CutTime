@@ -1,4 +1,7 @@
+import Controller.Controller;
+import Model.Model;
 import com.formdev.flatlaf.FlatLightLaf;
+import org.kabeja.parser.ParseException;
 
 import javax.swing.*;
 
@@ -6,8 +9,28 @@ public class CutTime {
     private JPanel mainPanel;
     private JButton closeButton;
     private JButton preferences;
+    private JLabel objectsNum;
+    private JLabel objectsLen;
+    private JLabel stopsNum;
+    private JLabel idleLen;
+    private JLabel headIdleTime;
+    private JLabel idleTime;
+    private JLabel workTime;
+    private JLabel totalTime;
 
-    public static void main(String[] args) {
+//    private static ResourceBundle localeBundle = ResourceBundle.getBundle("localeBundle");
+
+    public CutTime() {
+        closeButton.addActionListener(actionEvent -> {
+            Controller.exit();
+        });
+    }
+
+    public static void main(String[] args) throws ParseException {
+
+        Model model = new Model();
+        model.readDXF();
+
         FlatLightLaf.setup();
 
         JFrame frame = new JFrame("Plotter cut time");
