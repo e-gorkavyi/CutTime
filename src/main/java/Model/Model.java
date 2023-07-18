@@ -1,4 +1,5 @@
 package Model;
+
 import org.kabeja.dxf.*;
 import org.kabeja.parser.ParseException;
 import org.kabeja.parser.Parser;
@@ -6,7 +7,6 @@ import org.kabeja.parser.ParserBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Model{
 
@@ -37,6 +37,14 @@ public class Model{
             this.x2 = x2;
             this.y2 = y2;
             this.length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+
+        public Line(double x1, double y1, double x2, double y2, double length) {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x2;
+            this.y2 = y2;
+            this.length = length;
         }
 
         @Override
@@ -146,35 +154,30 @@ public class Model{
     public void readDXF() throws ParseException {
         ArrayList<DXFPrimitive> dxfPrimitives = new ArrayList<>();
         Parser parser = ParserBuilder.createDefaultParser();
-        parser.parse("1.dxf");
+        parser.parse("triangle_tuck-lock.dxf");
         DXFDocument document = parser.getDocument();
-        DXFLayer layer = document.getDXFLayer("0");
+        DXFLayer layer = document.getDXFLayer("Design");
         List<DXFPrimitive> primitives = new ArrayList<>();
-        List<DXFEntity> entityList = new ArrayList<>();
+        List<DXFLine> lineList = new ArrayList<>();
         if (layer.hasDXFEntities(DXFConstants.ENTITY_TYPE_LINE))
-            entityList.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE));
-        if (layer.hasDXFEntities(DXFConstants.ENTITY_TYPE_ARC))
-            entityList.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC));
-        if (layer.hasDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE))
-            entityList.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE));
+            lineList.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE));
 
-        for (int i = 0; i < entityList.size(); i++) {
-            Bounds bounds = entityList.get(i).getBounds();
-            if (Objects.equals(entityList.get(i).getType(), DXFConstants.ENTITY_TYPE_LINE)) {
-                primitives.add(new Line(
-                        bounds.getMinimumX(),
-                        bounds.getMinimumY(),
-                        bounds.getMaximumX(),
-                        bounds.getMaximumY())
-                );
-            }
-        }
+        for (int i = 0; i < lineList.size(); i++) {
+            primitives.add(new Line(
+                    lineList.get(i).getStartPoint().getX(),
+                    lineList.get(i).getStartPoint().getY(),
+                    lineList.get(i).getEndPoint().getX(),
+                    lineList.get(i).getEndPoint().getY(),
+                    lineList.get(i).getLength()
+            ));
         primitives.stream().forEach((p) -> System.out.println(
                         p.getPrimitiveType() +
                         ", x1:" + p.getX1() +
                         ", y1:" + p.getY1() +
                         ", x2:" + p.getX2() +
-                        ", y2:" + p.getY2()
+                        ", y2:" + p.getY2() +
+                        ", lenght:" + p.getLength()
         ));
+        }
     }
 }
