@@ -170,7 +170,7 @@ public class Model{
                     lineList.get(i).getEndPoint().getY(),
                     lineList.get(i).getLength()
             ));
-        primitives.stream().forEach((p) -> System.out.println(
+        primitives.forEach((p) -> System.out.println(
                         p.getPrimitiveType() +
                         ", x1:" + p.getX1() +
                         ", y1:" + p.getY1() +
