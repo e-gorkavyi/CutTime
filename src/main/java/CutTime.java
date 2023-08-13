@@ -27,9 +27,8 @@ public class CutTime {
     }
 
     public static void main(String[] args) throws ParseException {
-
         Model model = new Model();
-        model.readDXF();
+        model.readDXF("111.dxf"); //in work args[0]
 
         FlatLightLaf.setup();
 
