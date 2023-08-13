@@ -1,6 +1,8 @@
 package Exceptions;
 
-public class OpenFileException extends Exception {
+import java.io.IOException;
+
+public class OpenFileException extends IOException {
     private final String filename;
 
     public String getFilename() {

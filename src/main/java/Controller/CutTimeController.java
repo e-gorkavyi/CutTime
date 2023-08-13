@@ -1,12 +1,14 @@
-import Controller.Controller;
+package Controller;
+
 import Model.Model;
 import com.formdev.flatlaf.FlatLightLaf;
 import org.kabeja.parser.ParseException;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.ArrayList;
 
-public class CutTime {
+public class CutTimeController implements DataRefreshListener {
     private JPanel mainPanel;
     private JButton closeButton;
     private JButton preferences;
@@ -19,26 +21,42 @@ public class CutTime {
     private JLabel workTime;
     private JLabel totalTime;
 
-//    private static ResourceBundle localeBundle = ResourceBundle.getBundle("localeBundle");
+    @Override
+    public void onDataChanged(int dataCount) {
+//        reading data from Model and refresh labels
+    }
 
-    public CutTime() {
+    public CutTimeController() {
         closeButton.addActionListener(actionEvent -> {
-            Controller.exit();
+            exit();
         });
     }
 
     public static void main(String[] args) throws ParseException, IOException {
         Model model = new Model();
-        model.readDXF("carton"); //in work args[0]
+        model.calculate("carton"); //in work args[0]
 
         FlatLightLaf.setup();
 
         JFrame frame = new JFrame("Plotter cut time");
-        frame.setContentPane(new CutTime().mainPanel);
+        frame.setContentPane(new CutTimeController().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private void listenerInit() {
+        Model ctl = new Model();
+        ctl.addListener(this);
+    }
+
+    public void setObjNum(int num) {
+        objectsNum.setText(String.valueOf(num));
+    }
+
+    public static void exit() {
+        System.exit(0);
     }
 
     private void createUIComponents() {

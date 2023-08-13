@@ -1,5 +1,6 @@
 package Model;
 
+import Controller.DataRefreshListener;
 import org.kabeja.dxf.*;
 import org.kabeja.parser.ParseException;
 import org.kabeja.parser.Parser;
@@ -8,8 +9,40 @@ import org.kabeja.parser.ParserBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.UnaryOperator;
 
 public class Model {
+    private Map<String, String> data = new HashMap<>() {{
+        put("objectsNum", "");
+        put("totalLength", "");
+        put("stopsNum", "");
+        put("idleRunLength", "");
+        put("headUpTime", "");
+        put("idleRunTime", "");
+        put("workRunTime", "");
+        put("totalTime", "");
+    }};
+
+    public Map<String, String> getData() {
+        return data;
+    }
+
+    private ArrayList<DataRefreshListener> listeners = new ArrayList<DataRefreshListener>();
+
+    public void addListener(DataRefreshListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(DataRefreshListener listener) {
+        listeners.remove(listener);
+    }
+
+    private void fireListeners(int count) {
+        for(DataRefreshListener listener : listeners) {
+            listener.onDataChanged(count);
+        }
+    }
+
     public double lineAngle(Line ln) {
         double angle;
         if (ln.getX2() - ln.getX1() != 0) {
@@ -56,9 +89,6 @@ public class Model {
                 Double.parseDouble(config.get(headName).get("head_up"))
         );
 
-        //find last DXF file in the directory
-
-
         return new CalcParameters(plotterHead, getLastModified(pathToDxfFiles));
     }
 
@@ -66,51 +96,37 @@ public class Model {
         return new Line();
     }
 
-    public void readDXF(String headName) throws ParseException, IOException {
+    public PrimitiveCollection readDXF(String headName) throws ParseException, IOException {
         CalcParameters calcParameters = configParse(headName);
 
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(calcParameters.getDxfFile().getAbsolutePath());
         DXFDocument document = parser.getDocument();
-        List<DXFLine> dxfLines = new ArrayList<>();
-        List<DXFArc> dxfArcs = new ArrayList<>();
+        List<Line> dxfLines = new ArrayList<>();
+        List<Arc> dxfArcs = new ArrayList<>();
+        List<Circle> dxfCircles = new ArrayList<>();
         Iterator<DXFLayer> layerIterator = document.getDXFLayerIterator();
         DXFLayer layer;
         while (layerIterator.hasNext()) {
             layer = layerIterator.next();
             try {
                 dxfLines.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE));
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
             try {
                 dxfArcs.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC));
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
+            try {
+                dxfCircles.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE));
+            } catch (Exception ignored) {}
         }
+        return new PrimitiveCollection(dxfLines, dxfArcs, dxfCircles);
+    }
 
-        for (DXFLine line : dxfLines) {
-            System.out.println(line.getLength() +
-                    " " +
-                    line.getStartPoint().toString() +
-                    " " +
-                    line.getEndPoint().toString());
-        }
+    public void calculate(String headName) {
 
-        for (DXFArc arc : dxfArcs) {
-            System.out.println(arc.getStartPoint().getX() +
-                    "/" +
-                    arc.getStartPoint().getY() +
-                    " " +
-                    arc.getEndPoint().getX() +
-                    "/" +
-                    arc.getEndPoint().getY() +
-                    " " +
-                    arc.getCenterPoint().getX() +
-                    " " +
-                    arc.getCenterPoint().getY() +
-                    " " +
-                    arc.getRadius());
-        }
+//        Request data. Calculation logic.
+
+        fireListeners(1);
     }
 }
 
