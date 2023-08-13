@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import org.kabeja.parser.ParseException;
 
 import javax.swing.*;
+import java.io.IOException;
 
 public class CutTime {
     private JPanel mainPanel;
@@ -26,9 +27,9 @@ public class CutTime {
         });
     }
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         Model model = new Model();
-        model.readDXF("111.dxf"); //in work args[0]
+        model.readDXF("carton"); //in work args[0]
 
         FlatLightLaf.setup();
 
