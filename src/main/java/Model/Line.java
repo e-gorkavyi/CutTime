@@ -3,7 +3,12 @@ package Model;
 import org.kabeja.dxf.DXFLine;
 
 public class Line extends DXFLine implements DXFPrimitive {
+    private final DXFLine origin;
     PrimitiveType type = PrimitiveType.LINE;
+
+    public Line(DXFLine origin) {
+        this.origin = origin;
+    }
 
     @Override
     public String getType() {
@@ -17,21 +22,21 @@ public class Line extends DXFLine implements DXFPrimitive {
 
     @Override
     public double getX1() {
-        return this.getStartPoint().getX();
+        return origin.getStartPoint().getX();
     }
 
     @Override
     public double getY1() {
-        return this.getStartPoint().getY();
+        return origin.getStartPoint().getY();
     }
 
     @Override
     public double getX2() {
-        return this.getEndPoint().getX();
+        return origin.getEndPoint().getX();
     }
 
     @Override
     public double getY2() {
-        return this.getEndPoint().getY();
+        return origin.getEndPoint().getY();
     }
 }

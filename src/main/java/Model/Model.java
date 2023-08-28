@@ -2,6 +2,7 @@ package Model;
 
 import Controller.DataRefreshListener;
 import org.kabeja.dxf.*;
+import org.kabeja.dxf.helpers.Point;
 import org.kabeja.parser.ParseException;
 import org.kabeja.parser.Parser;
 import org.kabeja.parser.ParserBuilder;
@@ -27,10 +28,11 @@ public class Model {
         return data;
     }
 
-    private ArrayList<DataRefreshListener> listeners = new ArrayList<DataRefreshListener>();
+    private ArrayList<DataRefreshListener> listeners = new ArrayList<>();
 
     public void addListener(DataRefreshListener listener) {
         listeners.add(listener);
+        System.out.println(listeners);
     }
 
     public void removeListener(DataRefreshListener listener) {
@@ -92,8 +94,24 @@ public class Model {
         return new CalcParameters(plotterHead, getLastModified(pathToDxfFiles));
     }
 
-    public Line arcPoints(Arc iarc) {
-        return new Line();
+    public Point[] arcPoints(Arc iarc) {
+        double x1 = iarc.getRadius() * Math.cos(Math.toRadians(iarc.getStartAngle()));
+        x1 = x1 + iarc.getCenterPoint().getX();
+
+        double y1 = iarc.getRadius() * Math.sin(Math.toRadians(iarc.getStartAngle()));
+        y1 = y1 + iarc.getCenterPoint().getY();
+
+        double x2 = iarc.getRadius() * Math.cos(Math.toRadians(iarc.getEndAngle()));
+        x2 = x2 + iarc.getCenterPoint().getX();
+
+        double y2 = iarc.getRadius() * Math.sin(Math.toRadians(iarc.getEndAngle()));
+        y2 = y2 + iarc.getCenterPoint().getY();
+
+        Point[] result = new Point[2];
+        result[0] = new Point(x1, y1, 0);
+        result[1] = new Point(x2, y2, 0);
+
+        return result;
     }
 
     public PrimitiveCollection readDXF(String headName) throws ParseException, IOException {
@@ -110,21 +128,37 @@ public class Model {
         while (layerIterator.hasNext()) {
             layer = layerIterator.next();
             try {
-                dxfLines.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE));
+                for (Object line : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE)) {
+                    dxfLines.add(new Line((DXFLine) line));
+                }
+//                dxfLines.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE));
             } catch (Exception ignored) {}
             try {
-                dxfArcs.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC));
+                for (Object arc : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC)) {
+                    dxfArcs.add(new Arc((DXFArc) arc));
+                }
+//                dxfArcs.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC));
             } catch (Exception ignored) {}
             try {
-                dxfCircles.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE));
+                for (Object circle : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE)) {
+                    dxfCircles.add(new Circle((DXFArc) circle));
+                }
+//                dxfCircles.addAll(layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE));
             } catch (Exception ignored) {}
         }
         return new PrimitiveCollection(dxfLines, dxfArcs, dxfCircles);
     }
 
-    public void calculate(String headName) {
+    public void calculate(String headName) throws ParseException, IOException {
 
 //        Request data. Calculation logic.
+
+        PrimitiveCollection collection = this.readDXF(headName);
+        for (Arc arc : collection.getDxfArcs()) {
+            System.out.println(arc.getStartAngle() + " " + arc.getEndAngle() + " " + arc.getLength());
+            arc.reverse();
+            System.out.println(arc.getStartAngle() + " " + arc.getEndAngle() + " " + arc.getLength());
+        }
 
         fireListeners(1);
     }
