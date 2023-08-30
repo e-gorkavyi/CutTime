@@ -1,27 +1,21 @@
 package Model;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class PrimitiveCollection {
-    private final List<Line> dxfLines;
-    private final List<Arc> dxfArcs;
-    private final List<Circle> dxfCircles;
+    private final List<DXFPrimitive> dxfPrimitives;
 
-    public PrimitiveCollection(List<Line> dxfLines, List<Arc> dxfArcs, List<Circle> dxfCircles) {
-        this.dxfLines = dxfLines;
-        this.dxfArcs = dxfArcs;
-        this.dxfCircles = dxfCircles;
+    public PrimitiveCollection(List<DXFPrimitive> dxfPrimitives) {
+        this.dxfPrimitives = dxfPrimitives;
+        sort(this.dxfPrimitives);
     }
 
-    public List<Line> getDxfLines() {
-        return dxfLines;
+    public List<DXFPrimitive> getDxfPrimitives() {
+        return dxfPrimitives;
     }
 
-    public List<Arc> getDxfArcs() {
-        return dxfArcs;
-    }
-
-    public List<Circle> getDxfCircles() {
-        return dxfCircles;
+    private void sort(List<DXFPrimitive> primitives) {
+        primitives.sort(Comparator.comparingInt((DXFPrimitive prim) -> prim.getID()));
     }
 }

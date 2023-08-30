@@ -23,7 +23,7 @@ public class CutTime implements DataRefreshListener {
     private static Model model = new Model();
 
     @Override
-    public void onDataChanged(int dataCount) {
+    public void onDataChanged() {
         System.out.println("On Change!");
 //        reading data from Model and refresh labels
         this.objectsNum.setText(model.getData().get("objectsNum"));

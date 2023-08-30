@@ -1,8 +1,9 @@
 package Model;
 
 import org.kabeja.dxf.DXFLine;
+import org.kabeja.dxf.helpers.Point;
 
-public class Line extends DXFLine implements DXFPrimitive {
+public class Line extends DXFPrimitive {
     private final DXFLine origin;
     PrimitiveType type = PrimitiveType.LINE;
 
@@ -10,37 +11,47 @@ public class Line extends DXFLine implements DXFPrimitive {
         this.origin = origin;
     }
 
-    @Override
-    public String getType() {
-        return this.type.toString();
-    }
-
-    @Override
-    public PrimitiveType getPrimitiveType() {
+    public PrimitiveType getType() {
         return this.type;
     }
 
     @Override
+    int getID() {
+        return Integer.parseInt(origin.getID(), 16);
+    }
+
+    @Override
     public double getX1() {
-        return origin.getStartPoint().getX();
+        return round2dec(origin.getStartPoint().getX());
     }
 
     @Override
     public double getY1() {
-        return origin.getStartPoint().getY();
+        return round2dec(origin.getStartPoint().getY());
     }
 
     @Override
     public double getX2() {
-        return origin.getEndPoint().getX();
+        return round2dec(origin.getEndPoint().getX());
     }
 
     @Override
     public double getY2() {
-        return origin.getEndPoint().getY();
+        return round2dec(origin.getEndPoint().getY());
     }
 
     public double getLength() {
         return origin.getLength();
+    }
+
+    public void reverse() {
+        Point tempPoint = origin.getStartPoint();
+        origin.setStartPoint(origin.getEndPoint());
+        origin.setEndPoint(tempPoint);
+    }
+
+    @Override
+    public int compareTo(DXFPrimitive dxfPrimitive) {
+        return this.getID() - dxfPrimitive.getID();
     }
 }
