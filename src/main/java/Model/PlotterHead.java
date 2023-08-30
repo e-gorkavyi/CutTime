@@ -1,8 +1,8 @@
 package Model;
 
 public class PlotterHead {
-    private final int acceleration;
-    private final int speed;
+    private final double acceleration;
+    private final double speed;
     private final double headUp;
 
     public PlotterHead(int acceleration, int speed, double headUp) {
@@ -11,15 +11,22 @@ public class PlotterHead {
         this.headUp = headUp;
     }
 
-    public int getAcceleration() {
+    public double getAcceleration() {
         return acceleration;
     }
 
-    public int getSpeed() {
+    public double getSpeed() {
         return speed;
     }
 
     public double getHeadUp() {
         return headUp;
+    }
+
+    public double getRunTime(double startSpeed, double endSpeed, double length) {
+        double accelerationDistance = (acceleration * Math.pow(speed / acceleration, 2)) / 2;
+        double decelerationDistance;
+
+        return 0;
     }
 }

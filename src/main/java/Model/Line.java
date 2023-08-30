@@ -39,4 +39,8 @@ public class Line extends DXFLine implements DXFPrimitive {
     public double getY2() {
         return origin.getEndPoint().getY();
     }
+
+    public double getLength() {
+        return origin.getLength();
+    }
 }

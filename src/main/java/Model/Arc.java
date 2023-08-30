@@ -9,7 +9,7 @@ public class Arc implements DXFPrimitive {
 
     public Arc(DXFArc origin) {
         this.origin = origin;
-        origin.setCounterClockwise(true);
+        this.origin.setCounterClockwise(true);
     }
 
     @Override
@@ -19,27 +19,31 @@ public class Arc implements DXFPrimitive {
 
     @Override
     public double getX1() {
-        return origin.getStartPoint().getX();
+        return origin.isCounterClockwise() ? origin.getStartPoint().getX() : origin.getEndPoint().getX();
     }
 
     @Override
     public double getY1() {
-        return origin.getStartPoint().getY();
+        return origin.isCounterClockwise() ? origin.getStartPoint().getY() : origin.getEndPoint().getY();
     }
 
     @Override
     public double getX2() {
-        return origin.getEndPoint().getX();
+        return origin.isCounterClockwise() ? origin.getEndPoint().getX() : origin.getStartPoint().getX();
     }
 
     @Override
     public double getY2() {
-        return origin.getEndPoint().getY();
+        return origin.isCounterClockwise() ? origin.getEndPoint().getY() : origin.getStartPoint().getY();
     }
 
     @Override
     public double getLength() {
         return origin.getLength();
+    }
+
+    public boolean isCounterClockwise() {
+        return origin.isCounterClockwise();
     }
 
     public double getRadius() {
@@ -59,9 +63,6 @@ public class Arc implements DXFPrimitive {
     }
 
     public void reverse() {
-        double tempAngle = origin.getStartAngle();
-        origin.setStartAngle(origin.getEndAngle());
-        origin.setEndAngle(tempAngle - 360);
         origin.setCounterClockwise(!origin.isCounterClockwise());
     }
 }

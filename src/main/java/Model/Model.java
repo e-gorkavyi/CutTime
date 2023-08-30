@@ -155,9 +155,9 @@ public class Model {
 
         PrimitiveCollection collection = this.readDXF(headName);
         for (Arc arc : collection.getDxfArcs()) {
-            System.out.println(arc.getStartAngle() + " " + arc.getEndAngle() + " " + arc.getLength());
+            System.out.println(arc.getX1() + " " + arc.getY1() + " " + arc.getX2() + " " + arc.getY2());
             arc.reverse();
-            System.out.println(arc.getStartAngle() + " " + arc.getEndAngle() + " " + arc.getLength());
+            System.out.println(arc.getX1() + " " + arc.getY1() + " " + arc.getX2() + " " + arc.getY2());
         }
 
         fireListeners(1);
