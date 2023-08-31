@@ -11,13 +11,19 @@ public class Line extends DXFPrimitive {
         this.origin = origin;
     }
 
+    public Line(double X1, double Y1, double X2, double Y2) {
+        this.origin = new DXFLine();
+        this.origin.setStartPoint(new Point(X1, Y1, 0));
+        this.origin.setEndPoint(new Point(X2, Y2, 0));
+    }
+
     public PrimitiveType getType() {
         return this.type;
     }
 
     @Override
-    int getID() {
-        return Integer.parseInt(origin.getID(), 16);
+    public int getID() {
+        return origin.getID().equals("") ? 0 : Integer.parseInt(origin.getID(), 16);
     }
 
     @Override
@@ -48,6 +54,30 @@ public class Line extends DXFPrimitive {
         Point tempPoint = origin.getStartPoint();
         origin.setStartPoint(origin.getEndPoint());
         origin.setEndPoint(tempPoint);
+    }
+
+    private double lineAngle(Line ln) {
+        double angle;
+        if (ln.getX2() - ln.getX1() != 0) {
+            angle = Math.toDegrees(Math.atan((ln.getY2() - ln.getY1()) / (ln.getX2() - ln.getX1())));
+        } else {
+            angle = -90.0;
+            if (ln.getY2() > ln.getY1())
+                angle = 90.0;
+        }
+        if (ln.getX2() - ln.getX1() < 0 && ln.getY2() - ln.getY1() < 0)
+            angle = angle + 180;
+        return angle;
+    }
+
+    @Override
+    int getStartPointAngle() {
+        return (int) lineAngle(this);
+    }
+
+    @Override
+    int getEndPointAngle() {
+        return (int) lineAngle(this);
     }
 
     @Override

@@ -43,20 +43,6 @@ public class Model {
         }
     }
 
-    public double lineAngle(Line ln) {
-        double angle;
-        if (ln.getX2() - ln.getX1() != 0) {
-            angle = Math.toDegrees(Math.atan((ln.getY2() - ln.getY1()) / (ln.getX2() - ln.getX1())));
-        } else {
-            angle = -90.0;
-            if (ln.getY2() > ln.getY1())
-                angle = 90.0;
-        }
-        if (ln.getX2() - ln.getX1() < 0 && ln.getY2() - ln.getY1() < 0)
-            angle = angle + 180;
-        return angle;
-    }
-
     public double angleDif(double angle1, double angle2) {
         double dif = Math.abs(angle1 - angle2);
         if (dif > 180)
@@ -65,6 +51,8 @@ public class Model {
     }
 
     public static File getLastModified(String directoryFilePath) {
+        System.out.println(System.getProperty("file.encoding"));
+
         File directory = new File(directoryFilePath);
         File[] files = directory.listFiles(File::isFile);
         long lastModifiedTime = Long.MIN_VALUE;
@@ -114,7 +102,7 @@ public class Model {
             } catch (Exception ignored) {}
             try {
                 for (Object circle : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE)) {
-                    dxfPrimitives.add(new Circle((DXFArc) circle));
+                    dxfPrimitives.add(new Circle((DXFCircle) circle));
                 }
             } catch (Exception ignored) {}
         }
@@ -128,6 +116,7 @@ public class Model {
         List<DXFPrimitive> collection = this.readDXF(headName);
         collection.sort(Comparator.comparingInt((DXFPrimitive prim) -> prim.getID()));
 
+        // Pass for reverse wrong-oriented arcs.
         DXFPrimitive current, next;
         for (int i = 0; i < collection.toArray().length - 1; i++) {
             current = collection.get(i);
@@ -138,6 +127,50 @@ public class Model {
             if (next.getType() == PrimitiveType.ARC)
                 if (current.getX2() == next.getX2() && current.getY2() == next.getY2())
                     next.reverse();
+        }
+
+        // Pass for collect primitives into collection of the continuous-run collections
+        List<ContinuousRun> continuousRuns = new ArrayList<>();
+        ArrayList<DXFPrimitive> primitives = new ArrayList<>();
+        int firstPointer = 0;
+        DXFPrimitive firstElement, lastElement, nextElement;
+        for (int currentPointer = 0; currentPointer < collection.toArray().length; currentPointer++) {
+            firstElement = collection.get(firstPointer);
+            lastElement = collection.get(currentPointer);
+            if (currentPointer >= collection.toArray().length - 1) {
+                nextElement = new Line(
+                        lastElement.getX2(),
+                        lastElement.getY2(),
+                        0,
+                        0);
+            } else {
+                nextElement = collection.get(currentPointer + 1);
+            }
+
+
+            if ((firstElement.getX2() != lastElement.getX1() &&
+                    firstElement.getY2() != lastElement.getY1() &&
+                    firstElement.getEndPointAngle() != lastElement.getStartPointAngle()) ||
+                    currentPointer >= collection.toArray().length - 1
+            ) {
+                for (int j = firstPointer; j <= currentPointer; j++) {
+                    primitives.add(collection.get(j));
+                }
+
+                continuousRuns.add(new ContinuousRun(primitives.clone()));
+                DXFPrimitive finalLastElement = lastElement;
+                DXFPrimitive finalNextElement = nextElement;
+                continuousRuns.add(new ContinuousRun(new ArrayList<>() {{
+                        add(new Line(finalLastElement.getX2(),
+                                        finalLastElement.getY2(),
+                                        finalNextElement.getX1(),
+                                        finalNextElement.getY1())
+                            );
+                    }}
+                )
+                );
+                firstPointer = currentPointer;
+            }
         }
 
         fireListeners();

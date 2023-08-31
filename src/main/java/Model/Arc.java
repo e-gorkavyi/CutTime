@@ -4,7 +4,7 @@ import org.kabeja.dxf.DXFArc;
 import org.kabeja.dxf.helpers.Point;
 
 public class Arc extends DXFPrimitive {
-    private final DXFArc origin;
+    protected DXFArc origin;
     PrimitiveType type = PrimitiveType.ARC;
 
     public Arc(DXFArc origin) {
@@ -41,7 +41,7 @@ public class Arc extends DXFPrimitive {
     }
 
     public int getID() {
-        return Integer.parseInt(origin.getID(), 16);
+        return origin.getID().equals("") ? 0 : Integer.parseInt(origin.getID(), 16);
     }
 
     public boolean isCounterClockwise() {
@@ -66,6 +66,20 @@ public class Arc extends DXFPrimitive {
 
     public void reverse() {
         origin.setCounterClockwise(!origin.isCounterClockwise());
+    }
+
+    @Override
+    int getStartPointAngle() {
+        return this.isCounterClockwise() ?
+                (int) this.getStartAngle() + 90 :
+                (int) this.getStartAngle() - 90;
+    }
+
+    @Override
+    int getEndPointAngle() {
+        return this.isCounterClockwise() ?
+                (int) this.getEndAngle() + 90 :
+                (int) this.getEndAngle() - 90;
     }
 
     @Override

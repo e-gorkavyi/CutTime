@@ -34,6 +34,8 @@ public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
     abstract double getY2();
     abstract PrimitiveType getType();
     abstract void reverse();
+    abstract int getStartPointAngle();
+    abstract int getEndPointAngle();
 }
 
 enum PrimitiveType {
