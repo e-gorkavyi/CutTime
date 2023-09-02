@@ -8,7 +8,11 @@ public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
     private double endSpeed;
 
     protected double round2dec(double value) {
-        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_EVEN).doubleValue();
+    }
+
+    protected double round0dec(double value) {
+        return BigDecimal.valueOf(value).setScale(0, RoundingMode.HALF_EVEN).doubleValue();
     }
 
     public double getStartSpeed() {

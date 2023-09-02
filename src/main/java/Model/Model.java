@@ -2,6 +2,7 @@ package Model;
 
 import Controller.DataRefreshListener;
 import org.kabeja.dxf.*;
+import org.kabeja.dxf.helpers.Point;
 import org.kabeja.parser.ParseException;
 import org.kabeja.parser.Parser;
 import org.kabeja.parser.ParserBuilder;
@@ -21,34 +22,7 @@ public class Model {
         put("workRunTime", "");
         put("totalTime", "");
     }};
-
-    public Map<String, String> getData() {
-        return data;
-    }
-
     private ArrayList<DataRefreshListener> listeners = new ArrayList<>();
-
-    public void addListener(DataRefreshListener listener) {
-        listeners.add(listener);
-        System.out.println(listeners);
-    }
-
-    public void removeListener(DataRefreshListener listener) {
-        listeners.remove(listener);
-    }
-
-    private void fireListeners() {
-        for(DataRefreshListener listener : listeners) {
-            listener.onDataChanged();
-        }
-    }
-
-    public double angleDif(double angle1, double angle2) {
-        double dif = Math.abs(angle1 - angle2);
-        if (dif > 180)
-            dif = 360 - dif;
-        return dif;
-    }
 
     public static File getLastModified(String directoryFilePath) {
         System.out.println(System.getProperty("file.encoding"));
@@ -68,6 +42,32 @@ public class Model {
         return chosenFile;
     }
 
+    public Map<String, String> getData() {
+        return data;
+    }
+
+    public void addListener(DataRefreshListener listener) {
+        listeners.add(listener);
+        System.out.println(listeners);
+    }
+
+    public void removeListener(DataRefreshListener listener) {
+        listeners.remove(listener);
+    }
+
+    private void fireListeners() {
+        for (DataRefreshListener listener : listeners) {
+            listener.onDataChanged();
+        }
+    }
+
+    public double angleDif(double angle1, double angle2) {
+        double dif = Math.abs(angle1 - angle2);
+        if (dif > 180)
+            dif = 360 - dif;
+        return dif;
+    }
+
     public CalcParameters configParse(String headName) throws IOException {
         Map<String, Map<String, String>> config = IniParser.parse(new File("config.ini"));
         String pathToDxfFiles = config.get("paths").get("input_dir");
@@ -79,9 +79,7 @@ public class Model {
         return new CalcParameters(plotterHead, getLastModified(pathToDxfFiles));
     }
 
-    public List<DXFPrimitive> readDXF(String headName) throws ParseException, IOException {
-        CalcParameters calcParameters = configParse(headName);
-
+    public List<DXFPrimitive> readDXF(CalcParameters calcParameters) throws ParseException, IOException {
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(calcParameters.getDxfFile().getAbsolutePath());
         DXFDocument document = parser.getDocument();
@@ -94,17 +92,20 @@ public class Model {
                 for (Object line : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE)) {
                     dxfPrimitives.add(new Line((DXFLine) line));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 for (Object arc : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC)) {
                     dxfPrimitives.add(new Arc((DXFArc) arc));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 for (Object circle : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE)) {
                     dxfPrimitives.add(new Circle((DXFCircle) circle));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return dxfPrimitives;
     }
@@ -112,8 +113,9 @@ public class Model {
     public void calculate(String headName) throws ParseException, IOException {
 
 //        Request data. Calculation logic.
+        CalcParameters calcParameters = configParse(headName);
 
-        List<DXFPrimitive> collection = this.readDXF(headName);
+        List<DXFPrimitive> collection = this.readDXF(calcParameters);
         collection.sort(Comparator.comparingInt((DXFPrimitive prim) -> prim.getID()));
 
         // Pass for reverse wrong-oriented arcs.
@@ -131,47 +133,26 @@ public class Model {
 
         // Pass for collect primitives into collection of the continuous-run collections
         List<ContinuousRun> continuousRuns = new ArrayList<>();
-        ArrayList<DXFPrimitive> primitives = new ArrayList<>();
-        int firstPointer = 0;
-        DXFPrimitive firstElement, lastElement, nextElement;
-        for (int currentPointer = 0; currentPointer < collection.toArray().length; currentPointer++) {
-            firstElement = collection.get(firstPointer);
-            lastElement = collection.get(currentPointer);
-            if (currentPointer >= collection.toArray().length - 1) {
-                nextElement = new Line(
-                        lastElement.getX2(),
-                        lastElement.getY2(),
-                        0,
-                        0);
-            } else {
-                nextElement = collection.get(currentPointer + 1);
-            }
-
-
-            if ((firstElement.getX2() != lastElement.getX1() &&
-                    firstElement.getY2() != lastElement.getY1() &&
-                    firstElement.getEndPointAngle() != lastElement.getStartPointAngle()) ||
-                    currentPointer >= collection.toArray().length - 1
-            ) {
-                for (int j = firstPointer; j <= currentPointer; j++) {
-                    primitives.add(collection.get(j));
-                }
-
-                continuousRuns.add(new ContinuousRun(primitives.clone()));
-                DXFPrimitive finalLastElement = lastElement;
-                DXFPrimitive finalNextElement = nextElement;
-                continuousRuns.add(new ContinuousRun(new ArrayList<>() {{
-                        add(new Line(finalLastElement.getX2(),
-                                        finalLastElement.getY2(),
-                                        finalNextElement.getX1(),
-                                        finalNextElement.getY1())
-                            );
-                    }}
-                )
-                );
-                firstPointer = currentPointer;
+        ContinuousRun run = new ContinuousRun(calcParameters.getPlotterHead());
+        DXFLine idleRunLine = new DXFLine();
+        for (DXFPrimitive primitive : collection) {
+            System.out.println(primitive.getClass().getName() + " " + primitive.getStartPointAngle() + " " + primitive.getEndPointAngle());
+            if (!run.addPrimitive(primitive)) {
+                continuousRuns.add(run.clone());
+                run = new ContinuousRun(calcParameters.getPlotterHead());
+                run.addPrimitive(primitive);
             }
         }
+        continuousRuns.add(run);
+        run = new ContinuousRun(calcParameters.getPlotterHead());
+        idleRunLine.setStartPoint(
+                new Point(
+                        collection.get(collection.size() - 1).getX2(),
+                        collection.get(collection.size() - 1).getY2(),
+                        0));
+        idleRunLine.setEndPoint(new Point(0, 0, 0));
+        run.addPrimitive(new Line(idleRunLine));
+        continuousRuns.add(run);
 
         fireListeners();
     }

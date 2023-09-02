@@ -1,22 +1,26 @@
 package Model;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ContinuousRun implements Run, Cloneable{
-    private double len;
-    private double runTime;
-    private Object primitives;
+public class ContinuousRun implements Run, Cloneable {
+    private final List<DXFPrimitive> dxfPrimitives = new ArrayList<>();
 
-    public ContinuousRun(Object primitives) {
-        this.primitives = primitives;
+    public ContinuousRun(PlotterHead head) {
     }
 
-    public double getLen() {
-        return len;
-    }
-
-    public double getRunTime() {
-        return runTime;
+    public boolean addPrimitive(DXFPrimitive primitive) {
+        if (dxfPrimitives.isEmpty()) {
+            dxfPrimitives.add(primitive);
+            return true;
+        } else if (dxfPrimitives.get(dxfPrimitives.size() - 1).getX2() == primitive.getX1() &&
+                dxfPrimitives.get(dxfPrimitives.size() - 1).getY2() == primitive.getY1() &&
+                dxfPrimitives.get(dxfPrimitives.size() - 1).getEndPointAngle() == primitive.getStartPointAngle()) {
+            dxfPrimitives.add(primitive);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

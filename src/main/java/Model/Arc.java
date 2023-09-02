@@ -70,16 +70,41 @@ public class Arc extends DXFPrimitive {
 
     @Override
     int getStartPointAngle() {
-        return this.isCounterClockwise() ?
-                (int) this.getStartAngle() + 90 :
-                (int) this.getStartAngle() - 90;
+        int result = 0;
+        if (this.isCounterClockwise()) {
+            result = (int) round0dec(this.getStartAngle() + 90);
+        } else if (!this.isCounterClockwise()) {
+            result = (int) round0dec(this.getStartAngle() - 90);
+        }
+        if (result >= 360)
+            result -= 360;
+        if (result < 0)
+            result += 360;
+
+        return result;
+//        return this.isCounterClockwise() ?
+//                (int) round0dec(this.getStartAngle() + 90) >= 360 ?
+//                        (int) round0dec(this.getStartAngle() + 90) - 360 :
+//                        (int) round0dec(this.getStartAngle() + 90) :
+//                (int) round0dec(this.getStartAngle() - 90) >= 360 ?
+//                        (int) round0dec(this.getStartAngle() - 90) - 360 :
+//                        (int) round0dec(this.getStartAngle() - 90);
     }
 
     @Override
     int getEndPointAngle() {
-        return this.isCounterClockwise() ?
-                (int) this.getEndAngle() + 90 :
-                (int) this.getEndAngle() - 90;
+        int result = 0;
+        if (this.isCounterClockwise()) {
+            result = (int) round0dec(this.getEndAngle() + 90);
+        } else if (!this.isCounterClockwise()) {
+            result = (int) round0dec(this.getEndAngle() - 90);
+        }
+        if (result >= 360)
+            result -= 360;
+        if (result < 0)
+            result += 360;
+
+        return result;
     }
 
     @Override
