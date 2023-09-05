@@ -68,6 +68,10 @@ public class Arc extends DXFPrimitive {
         origin.setCounterClockwise(!origin.isCounterClockwise());
     }
 
+    public Point getStartPoint() {
+        return origin.getStartPoint();
+    }
+
     @Override
     int getStartPointAngle() {
         int result = 0;

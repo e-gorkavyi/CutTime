@@ -139,6 +139,10 @@ public class Model {
             System.out.println(primitive.getClass().getName() + " " + primitive.getStartPointAngle() + " " + primitive.getEndPointAngle());
             if (!run.addPrimitive(primitive)) {
                 continuousRuns.add(run.clone());
+                idleRunLine.setStartPoint(run.getLastPoint());
+                idleRunLine.setEndPoint(primitive.getStartPoint());
+                run = new ContinuousRun(calcParameters.getPlotterHead());
+                run.addPrimitive(new Line(idleRunLine));
                 run = new ContinuousRun(calcParameters.getPlotterHead());
                 run.addPrimitive(primitive);
             }

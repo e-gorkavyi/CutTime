@@ -1,5 +1,7 @@
 package Model;
 
+import org.kabeja.dxf.helpers.Point;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -40,6 +42,7 @@ public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
     abstract void reverse();
     abstract int getStartPointAngle();
     abstract int getEndPointAngle();
+    abstract Point getStartPoint();
 }
 
 enum PrimitiveType {

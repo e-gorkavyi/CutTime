@@ -50,6 +50,10 @@ public class Line extends DXFPrimitive {
         return origin.getLength();
     }
 
+    public Point getStartPoint() {
+        return origin.getStartPoint();
+    }
+
     public void reverse() {
         Point tempPoint = origin.getStartPoint();
         origin.setStartPoint(origin.getEndPoint());
