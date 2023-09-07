@@ -10,6 +10,7 @@ public class Circle extends Arc {
     public Circle(DXFCircle origin) {
         super(new DXFArc());
         this.originCircle = origin;
+        cast(originCircle);
     }
 
     private void cast(DXFCircle origin) {

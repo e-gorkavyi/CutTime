@@ -80,33 +80,58 @@ public class Model {
     }
 
     public List<DXFPrimitive> readDXF(CalcParameters calcParameters) throws ParseException, IOException {
+
+        DXFParser dxfParser = new DXFParser(calcParameters.getDxfFile().getAbsolutePath());
+
         Parser parser = ParserBuilder.createDefaultParser();
         parser.parse(calcParameters.getDxfFile().getAbsolutePath());
         DXFDocument document = parser.getDocument();
         List<DXFPrimitive> dxfPrimitives = new ArrayList<>();
+        List<DXFPrimitive> dxfLines = new ArrayList<>();
+        List<DXFPrimitive> dxfArcs = new ArrayList<>();
         Iterator<DXFLayer> layerIterator = document.getDXFLayerIterator();
         DXFLayer layer;
         while (layerIterator.hasNext()) {
             layer = layerIterator.next();
-            try {
-                for (Object line : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE)) {
-                    dxfPrimitives.add(new Line((DXFLine) line));
-                }
-            } catch (Exception ignored) {
-            }
-            try {
-                for (Object arc : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC)) {
-                    dxfPrimitives.add(new Arc((DXFArc) arc));
-                }
-            } catch (Exception ignored) {
-            }
             try {
                 for (Object circle : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE)) {
                     dxfPrimitives.add(new Circle((DXFCircle) circle));
                 }
             } catch (Exception ignored) {
             }
+            try {
+                for (Object line : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE)) {
+                    dxfLines.add(new Line((DXFLine) line));
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                for (Object arc : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC)) {
+                    dxfArcs.add(new Arc((DXFArc) arc));
+                }
+            } catch (Exception ignored) {
+            }
         }
+
+        Iterator<DXFPrimitive> dxfLinesIterator = dxfLines.listIterator();
+        DXFPrimitive line;
+        DXFPrimitive arc;
+        while (dxfLinesIterator.hasNext()) {
+            line = dxfLinesIterator.next();
+            dxfPrimitives.add(line);
+            Iterator<DXFPrimitive> dxfArcsIterator = dxfArcs.listIterator();
+            while (dxfArcsIterator.hasNext()) {
+                arc = dxfArcsIterator.next();
+                if (line.getEndPoint().equals(arc.getStartPoint()) ||
+                        line.getEndPoint().equals(arc.getEndPoint())) {
+                    dxfPrimitives.add(arc);
+                    dxfArcsIterator.remove();
+                    break;
+                }
+            }
+        }
+        dxfPrimitives.addAll(dxfArcs);
+
         return dxfPrimitives;
     }
 
@@ -124,10 +149,10 @@ public class Model {
             current = collection.get(i);
             next = collection.get(i + 1);
             if (current.getType() == PrimitiveType.ARC)
-                if (current.getX1() == next.getX1() && current.getY1() == next.getY1())
+                if (current.getStartPoint().equals(next.getStartPoint()))
                     current.reverse();
             if (next.getType() == PrimitiveType.ARC)
-                if (current.getX2() == next.getX2() && current.getY2() == next.getY2())
+                if (current.getEndPoint().equals(next.getEndPoint()))
                     next.reverse();
         }
 
@@ -136,7 +161,21 @@ public class Model {
         ContinuousRun run = new ContinuousRun(calcParameters.getPlotterHead());
         DXFLine idleRunLine = new DXFLine();
         for (DXFPrimitive primitive : collection) {
-            System.out.println(primitive.getClass().getName() + " " + primitive.getStartPointAngle() + " " + primitive.getEndPointAngle());
+            System.out.println(
+                    primitive.getClass().getName() +
+                            " " +
+                            primitive.getX1() +
+                            " " +
+                            primitive.getY1() +
+                            " " +
+                            primitive.getStartPointAngle() +
+                            " " +
+                            primitive.getX2() +
+                            " " +
+                            primitive.getY2() +
+                            " " +
+                            primitive.getEndPointAngle()
+            );
             if (!run.addPrimitive(primitive)) {
                 continuousRuns.add(run.clone());
                 idleRunLine.setStartPoint(run.getLastPoint());

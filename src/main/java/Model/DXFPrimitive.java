@@ -7,6 +7,9 @@ import java.math.RoundingMode;
 
 public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
     private double startSpeed;
+    private double maxSpeed;
+
+
     private double endSpeed;
 
     protected double round2dec(double value) {
@@ -23,6 +26,14 @@ public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
 
     public void setStartSpeed(double startSpeed) {
         this.startSpeed = startSpeed;
+    }
+
+    public double getMaxSpeed() {
+        return maxSpeed;
+    }
+
+    public void setMaxSpeed(double maxSpeed) {
+        this.maxSpeed = maxSpeed;
     }
 
     public double getEndSpeed() {
@@ -43,6 +54,7 @@ public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
     abstract int getStartPointAngle();
     abstract int getEndPointAngle();
     abstract Point getStartPoint();
+    abstract Point getEndPoint();
 }
 
 enum PrimitiveType {

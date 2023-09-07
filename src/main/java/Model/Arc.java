@@ -4,7 +4,7 @@ import org.kabeja.dxf.DXFArc;
 import org.kabeja.dxf.helpers.Point;
 
 public class Arc extends DXFPrimitive {
-    protected DXFArc origin;
+    DXFArc origin;
     PrimitiveType type = PrimitiveType.ARC;
 
     public Arc(DXFArc origin) {
@@ -70,6 +70,10 @@ public class Arc extends DXFPrimitive {
 
     public Point getStartPoint() {
         return origin.getStartPoint();
+    }
+
+    public Point getEndPoint() {
+        return origin.getEndPoint();
     }
 
     @Override
