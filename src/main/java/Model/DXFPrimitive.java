@@ -1,15 +1,11 @@
 package Model;
 
-import org.kabeja.dxf.helpers.Point;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
+public abstract class DXFPrimitive {
     private double startSpeed;
     private double maxSpeed;
-
-
     private double endSpeed;
 
     protected double round2dec(double value) {
@@ -44,11 +40,6 @@ public abstract class DXFPrimitive implements Comparable<DXFPrimitive>{
         this.endSpeed = endSpeed;
     }
 
-    abstract int getID();
-    abstract double getX1();
-    abstract double getY1();
-    abstract double getX2();
-    abstract double getY2();
     abstract PrimitiveType getType();
     abstract void reverse();
     abstract int getStartPointAngle();

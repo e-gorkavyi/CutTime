@@ -54,7 +54,7 @@ public class Line extends DXFPrimitive {
         return origin.getStartPoint();
     }
 
-    public Point getEndPoint() {
+    public Model.Point getEndPoint() {
         return origin.getEndPoint();
     }
 

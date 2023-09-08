@@ -16,9 +16,6 @@ public class DXFParser {
     }
 
     private void parse(List<String> allLines) {
-        for (String s :
-                allLines) {
-            System.out.println(s);
-        }
+
     }
 }

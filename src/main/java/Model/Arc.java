@@ -1,79 +1,87 @@
 package Model;
 
-import org.kabeja.dxf.DXFArc;
-import org.kabeja.dxf.helpers.Point;
-
 public class Arc extends DXFPrimitive {
-    DXFArc origin;
+    private final Point centerPoint;
+    private final double radius;
+    private final double startAngle;
+    private final double endAngle;
+    private boolean isCounterClockwise;
     PrimitiveType type = PrimitiveType.ARC;
 
-    public Arc(DXFArc origin) {
-        this.origin = origin;
-        this.origin.setCounterClockwise(true);
+    public Arc(
+            Point centerPoint,
+            double radius,
+            double startAngle,
+            double endAngle,
+            boolean isCounterClockwise) {
+        this.centerPoint = centerPoint;
+        this.radius = radius;
+        this.startAngle = startAngle;
+        this.endAngle = endAngle;
+        this.isCounterClockwise = isCounterClockwise;
     }
 
     public PrimitiveType getType() {
         return this.type;
     }
 
-    @Override
-    public double getX1() {
-        return origin.isCounterClockwise() ? round2dec(origin.getStartPoint().getX()) : round2dec(origin.getEndPoint().getX());
-    }
-
-    @Override
-    public double getY1() {
-        return origin.isCounterClockwise() ? round2dec(origin.getStartPoint().getY()) : round2dec(origin.getEndPoint().getY());
-    }
-
-    @Override
-    public double getX2() {
-        return origin.isCounterClockwise() ? round2dec(origin.getEndPoint().getX()) : round2dec(origin.getStartPoint().getX());
-    }
-
-    @Override
-    public double getY2() {
-        return origin.isCounterClockwise() ? round2dec(origin.getEndPoint().getY()) : round2dec(origin.getStartPoint().getY());
-    }
-
     public double getLength() {
-        return origin.getLength();
+        double totalAngle = this.getTotalAngle();
+        return totalAngle * Math.PI * this.radius / 180.0;
     }
 
-    public int getID() {
-        return origin.getID().equals("") ? 0 : Integer.parseInt(origin.getID(), 16);
+    public double getTotalAngle() {
+        return this.endAngle < this.startAngle ?
+                360.0 + this.endAngle - this.startAngle :
+                Math.abs(this.endAngle - this.startAngle);
     }
 
     public boolean isCounterClockwise() {
-        return origin.isCounterClockwise();
+        return isCounterClockwise;
+    }
+
+    public void setCounterClockwise(boolean counterClockwise) {
+        isCounterClockwise = counterClockwise;
     }
 
     public double getRadius() {
-        return origin.getRadius();
+        return radius;
     }
 
     public double getStartAngle() {
-        return origin.getStartAngle();
+        return startAngle;
     }
 
     public double getEndAngle() {
-        return origin.getEndAngle();
+        return endAngle;
     }
 
     public Point getCenterPoint() {
-        return origin.getCenterPoint();
+        return centerPoint;
     }
 
     public void reverse() {
-        origin.setCounterClockwise(!origin.isCounterClockwise());
+        setCounterClockwise(!isCounterClockwise());
     }
 
     public Point getStartPoint() {
-        return origin.getStartPoint();
+        double angle = getEndAngle();
+        if (isCounterClockwise)
+            angle = getStartAngle();
+        return new Point(
+                centerPoint.x() + radius * Math.cos(angle),
+                centerPoint.y() + radius * Math.sin(angle)
+        );
     }
 
     public Point getEndPoint() {
-        return origin.getEndPoint();
+        double angle = getStartAngle();
+        if (isCounterClockwise)
+            angle = getEndAngle();
+        return new Point(
+                centerPoint.x() + radius * Math.cos(angle),
+                centerPoint.y() + radius * Math.sin(angle)
+        );
     }
 
     @Override
@@ -90,13 +98,6 @@ public class Arc extends DXFPrimitive {
             result += 360;
 
         return result;
-//        return this.isCounterClockwise() ?
-//                (int) round0dec(this.getStartAngle() + 90) >= 360 ?
-//                        (int) round0dec(this.getStartAngle() + 90) - 360 :
-//                        (int) round0dec(this.getStartAngle() + 90) :
-//                (int) round0dec(this.getStartAngle() - 90) >= 360 ?
-//                        (int) round0dec(this.getStartAngle() - 90) - 360 :
-//                        (int) round0dec(this.getStartAngle() - 90);
     }
 
     @Override
@@ -113,10 +114,5 @@ public class Arc extends DXFPrimitive {
             result += 360;
 
         return result;
-    }
-
-    @Override
-    public int compareTo(DXFPrimitive dxfPrimitive) {
-        return this.getID() - dxfPrimitive.getID();
     }
 }
