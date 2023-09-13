@@ -3,8 +3,6 @@ package View;
 import Controller.DataRefreshListener;
 import Model.Model;
 import com.formdev.flatlaf.FlatLightLaf;
-import org.kabeja.parser.ParseException;
-
 import javax.swing.*;
 import java.io.IOException;
 
@@ -24,7 +22,6 @@ public class CutTime implements DataRefreshListener {
 
     @Override
     public void onDataChanged() {
-        System.out.println("On Change!");
 //        reading data from Model and refresh labels
         this.objectsNum.setText(model.getData().get("objectsNum"));
         this.objectsLen.setText(model.getData().get("totalLength"));
@@ -43,7 +40,7 @@ public class CutTime implements DataRefreshListener {
         model.addListener(this);
     }
 
-    public static void main(String[] args) throws ParseException, IOException {
+    public static void main(String[] args) throws IOException {
         FlatLightLaf.setup();
 
         JFrame frame = new JFrame("Plotter cut time");

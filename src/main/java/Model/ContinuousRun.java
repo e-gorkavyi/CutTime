@@ -1,7 +1,5 @@
 package Model;
 
-import org.kabeja.dxf.helpers.Point;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,9 +13,7 @@ public class ContinuousRun implements Run, Cloneable {
         if (dxfPrimitives.isEmpty()) {
             dxfPrimitives.add(primitive);
             return true;
-        } else if (dxfPrimitives.get(dxfPrimitives.size() - 1).getX2() == primitive.getX1() &&
-                dxfPrimitives.get(dxfPrimitives.size() - 1).getY2() == primitive.getY1() &&
-                dxfPrimitives.get(dxfPrimitives.size() - 1).getEndPointAngle() == primitive.getStartPointAngle()) {
+        } else if (dxfPrimitives.get(dxfPrimitives.size() - 1).pointsAndVectorsEqual(primitive, PointParam.END, PointParam.START)) {
             dxfPrimitives.add(primitive);
             return true;
         } else {
@@ -26,11 +22,7 @@ public class ContinuousRun implements Run, Cloneable {
     }
 
     public Point getLastPoint() {
-        return new Point(
-                dxfPrimitives.get(dxfPrimitives.size() - 1).getX2(),
-                dxfPrimitives.get(dxfPrimitives.size() - 1).getY2(),
-                0
-        );
+        return dxfPrimitives.get(dxfPrimitives.size() - 1).getEndPoint();
     }
 
     @Override

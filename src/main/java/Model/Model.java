@@ -1,11 +1,6 @@
 package Model;
 
 import Controller.DataRefreshListener;
-import org.kabeja.dxf.*;
-import org.kabeja.dxf.helpers.Point;
-import org.kabeja.parser.ParseException;
-import org.kabeja.parser.Parser;
-import org.kabeja.parser.ParserBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +20,6 @@ public class Model {
     private ArrayList<DataRefreshListener> listeners = new ArrayList<>();
 
     public static File getLastModified(String directoryFilePath) {
-        System.out.println(System.getProperty("file.encoding"));
-
         File directory = new File(directoryFilePath);
         File[] files = directory.listFiles(File::isFile);
         long lastModifiedTime = Long.MIN_VALUE;
@@ -48,7 +41,6 @@ public class Model {
 
     public void addListener(DataRefreshListener listener) {
         listeners.add(listener);
-        System.out.println(listeners);
     }
 
     public void removeListener(DataRefreshListener listener) {
@@ -79,122 +71,58 @@ public class Model {
         return new CalcParameters(plotterHead, getLastModified(pathToDxfFiles));
     }
 
-    public List<DXFPrimitive> readDXF(CalcParameters calcParameters) throws ParseException, IOException {
-
+    public List<DXFPrimitive> readDXF(CalcParameters calcParameters) throws IOException {
         DXFParser dxfParser = new DXFParser(calcParameters.getDxfFile().getAbsolutePath());
-
-        Parser parser = ParserBuilder.createDefaultParser();
-        parser.parse(calcParameters.getDxfFile().getAbsolutePath());
-        DXFDocument document = parser.getDocument();
-        List<DXFPrimitive> dxfPrimitives = new ArrayList<>();
-        List<DXFPrimitive> dxfLines = new ArrayList<>();
-        List<DXFPrimitive> dxfArcs = new ArrayList<>();
-        Iterator<DXFLayer> layerIterator = document.getDXFLayerIterator();
-        DXFLayer layer;
-        while (layerIterator.hasNext()) {
-            layer = layerIterator.next();
-            try {
-                for (Object circle : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_CIRCLE)) {
-                    dxfPrimitives.add(new Circle((DXFCircle) circle));
-                }
-            } catch (Exception ignored) {
-            }
-            try {
-                for (Object line : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_LINE)) {
-                    dxfLines.add(new Line((DXFLine) line));
-                }
-            } catch (Exception ignored) {
-            }
-            try {
-                for (Object arc : layer.getDXFEntities(DXFConstants.ENTITY_TYPE_ARC)) {
-                    dxfArcs.add(new Arc((DXFArc) arc));
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        Iterator<DXFPrimitive> dxfLinesIterator = dxfLines.listIterator();
-        DXFPrimitive line;
-        DXFPrimitive arc;
-        while (dxfLinesIterator.hasNext()) {
-            line = dxfLinesIterator.next();
-            dxfPrimitives.add(line);
-            Iterator<DXFPrimitive> dxfArcsIterator = dxfArcs.listIterator();
-            while (dxfArcsIterator.hasNext()) {
-                arc = dxfArcsIterator.next();
-                if (line.getEndPoint().equals(arc.getStartPoint()) ||
-                        line.getEndPoint().equals(arc.getEndPoint())) {
-                    dxfPrimitives.add(arc);
-                    dxfArcsIterator.remove();
-                    break;
-                }
-            }
-        }
-        dxfPrimitives.addAll(dxfArcs);
-
-        return dxfPrimitives;
+        return dxfParser.getDxfPrimitiveList();
     }
 
-    public void calculate(String headName) throws ParseException, IOException {
+    public void calculate(String headName) throws IOException {
 
 //        Request data. Calculation logic.
         CalcParameters calcParameters = configParse(headName);
 
         List<DXFPrimitive> collection = this.readDXF(calcParameters);
-        collection.sort(Comparator.comparingInt((DXFPrimitive prim) -> prim.getID()));
 
-        // Pass for reverse wrong-oriented arcs.
+        // Passes for reverse wrong-oriented arcs.
         DXFPrimitive current, next;
         for (int i = 0; i < collection.toArray().length - 1; i++) {
             current = collection.get(i);
             next = collection.get(i + 1);
-            if (current.getType() == PrimitiveType.ARC)
-                if (current.getStartPoint().equals(next.getStartPoint()))
+            if (current.getType() == PrimitiveType.ARC) {
+                if (current.getStartPoint().coordEqual(next.getStartPoint(), .5) ||
+                        current.getEndPoint().coordEqual(next.getEndPoint(), .5) ||
+                        current.getStartPoint().coordEqual(next.getEndPoint(), .5)) {
                     current.reverse();
-            if (next.getType() == PrimitiveType.ARC)
-                if (current.getEndPoint().equals(next.getEndPoint()))
-                    next.reverse();
+                }
+            }
         }
 
         // Pass for collect primitives into collection of the continuous-run collections
         List<ContinuousRun> continuousRuns = new ArrayList<>();
         ContinuousRun run = new ContinuousRun(calcParameters.getPlotterHead());
-        DXFLine idleRunLine = new DXFLine();
         for (DXFPrimitive primitive : collection) {
-            System.out.println(
-                    primitive.getClass().getName() +
-                            " " +
-                            primitive.getX1() +
-                            " " +
-                            primitive.getY1() +
-                            " " +
-                            primitive.getStartPointAngle() +
-                            " " +
-                            primitive.getX2() +
-                            " " +
-                            primitive.getY2() +
-                            " " +
-                            primitive.getEndPointAngle()
-            );
+
+            System.out.println(primitive.getType() + " " + primitive.getStartPointAngle() + " " + primitive.getEndPointAngle());
+
             if (!run.addPrimitive(primitive)) {
                 continuousRuns.add(run.clone());
-                idleRunLine.setStartPoint(run.getLastPoint());
-                idleRunLine.setEndPoint(primitive.getStartPoint());
+                Point lastPoint = run.getLastPoint();
                 run = new ContinuousRun(calcParameters.getPlotterHead());
-                run.addPrimitive(new Line(idleRunLine));
+                run.addPrimitive(new Line(
+                        lastPoint,
+                        primitive.getStartPoint()
+                ));
+                continuousRuns.add(run.clone());
                 run = new ContinuousRun(calcParameters.getPlotterHead());
                 run.addPrimitive(primitive);
             }
         }
         continuousRuns.add(run);
         run = new ContinuousRun(calcParameters.getPlotterHead());
-        idleRunLine.setStartPoint(
-                new Point(
-                        collection.get(collection.size() - 1).getX2(),
-                        collection.get(collection.size() - 1).getY2(),
-                        0));
-        idleRunLine.setEndPoint(new Point(0, 0, 0));
-        run.addPrimitive(new Line(idleRunLine));
+        run.addPrimitive(new Line(
+                collection.get(collection.size() - 1).getEndPoint(),
+                new Point(0, 0)
+        ));
         continuousRuns.add(run);
 
         fireListeners();

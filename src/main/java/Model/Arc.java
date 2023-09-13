@@ -1,24 +1,26 @@
 package Model;
 
 public class Arc extends DXFPrimitive {
-    private final Point centerPoint;
-    private final double radius;
-    private final double startAngle;
-    private final double endAngle;
-    private boolean isCounterClockwise;
+    private Point centerPoint;
+    private double radius;
+    private double endAngle;
+    private double startAngle;
+    private boolean counterClockwise;
     PrimitiveType type = PrimitiveType.ARC;
+
+    public Arc() {
+    }
 
     public Arc(
             Point centerPoint,
             double radius,
             double startAngle,
-            double endAngle,
-            boolean isCounterClockwise) {
+            double endAngle) {
         this.centerPoint = centerPoint;
         this.radius = radius;
         this.startAngle = startAngle;
         this.endAngle = endAngle;
-        this.isCounterClockwise = isCounterClockwise;
+        this.counterClockwise = true;
     }
 
     public PrimitiveType getType() {
@@ -31,17 +33,15 @@ public class Arc extends DXFPrimitive {
     }
 
     public double getTotalAngle() {
-        return this.endAngle < this.startAngle ?
-                360.0 + this.endAngle - this.startAngle :
-                Math.abs(this.endAngle - this.startAngle);
+        return Math.max(this.startAngle, this.endAngle) - Math.min(this.startAngle, this.endAngle);
     }
 
     public boolean isCounterClockwise() {
-        return isCounterClockwise;
+        return counterClockwise;
     }
 
     public void setCounterClockwise(boolean counterClockwise) {
-        isCounterClockwise = counterClockwise;
+        this.counterClockwise = counterClockwise;
     }
 
     public double getRadius() {
@@ -60,58 +60,75 @@ public class Arc extends DXFPrimitive {
         return centerPoint;
     }
 
+    public void setCenterPoint(Point centerPoint) {
+        this.centerPoint = centerPoint;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public void setEndAngle(double endAngle) {
+        this.endAngle = endAngle;
+    }
+
+    public void setStartAngle(double startAngle) {
+        this.startAngle = startAngle;
+    }
+
     public void reverse() {
         setCounterClockwise(!isCounterClockwise());
+        double temp = this.startAngle;
+        this.startAngle = this.endAngle;
+        this.endAngle = temp;
     }
 
+    @Override
     public Point getStartPoint() {
-        double angle = getEndAngle();
-        if (isCounterClockwise)
-            angle = getStartAngle();
         return new Point(
-                centerPoint.x() + radius * Math.cos(angle),
-                centerPoint.y() + radius * Math.sin(angle)
-        );
-    }
-
-    public Point getEndPoint() {
-        double angle = getStartAngle();
-        if (isCounterClockwise)
-            angle = getEndAngle();
-        return new Point(
-                centerPoint.x() + radius * Math.cos(angle),
-                centerPoint.y() + radius * Math.sin(angle)
+                centerPoint.x() + radius * Math.cos(Math.toRadians(getStartAngle())),
+                centerPoint.y() + radius * Math.sin(Math.toRadians(getStartAngle()))
         );
     }
 
     @Override
-    int getStartPointAngle() {
-        int result = 0;
-        if (this.isCounterClockwise()) {
-            result = (int) round0dec(this.getStartAngle() + 90);
-        } else if (!this.isCounterClockwise()) {
-            result = (int) round0dec(this.getStartAngle() - 90);
+    public Point getEndPoint() {
+        return new Point(
+                centerPoint.x() + radius * Math.cos(Math.toRadians(getEndAngle())),
+                centerPoint.y() + radius * Math.sin(Math.toRadians(getEndAngle()))
+        );
+    }
+
+    @Override
+    double getStartPointAngle() {
+        double result;
+        if (counterClockwise) {
+            result = (this.getStartAngle() + 90);
+        } else {
+            result = this.getStartAngle() - 90;
         }
-        if (result >= 360)
-            result -= 360;
-        if (result < 0)
+
+        if (round0dec(result) < 0)
             result += 360;
+        if (round0dec(result) >= 360)
+            result -= 360;
 
         return result;
     }
 
     @Override
-    int getEndPointAngle() {
-        int result = 0;
-        if (this.isCounterClockwise()) {
-            result = (int) round0dec(this.getEndAngle() + 90);
-        } else if (!this.isCounterClockwise()) {
-            result = (int) round0dec(this.getEndAngle() - 90);
+    double getEndPointAngle() {
+        double result;
+        if (counterClockwise) {
+            result = this.getEndAngle() + 90;
+        } else {
+            result = this.getEndAngle() - 90;
         }
-        if (result >= 360)
-            result -= 360;
-        if (result < 0)
+
+        if (round0dec(result) < 0)
             result += 360;
+        if (round0dec(result) >= 360)
+            result -= 360;
 
         return result;
     }
