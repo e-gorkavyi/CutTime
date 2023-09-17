@@ -63,10 +63,15 @@ public class Model {
     public CalcParameters configParse(String headName) throws IOException {
         Map<String, Map<String, String>> config = IniParser.parse(new File("config.ini"));
         String pathToDxfFiles = config.get("paths").get("input_dir");
+        Map<Integer, Integer> confRadiuses = new HashMap<>();
+        for (Map.Entry<String, String> entry : config.get("radius_speed").entrySet()) {
+            confRadiuses.put(Integer.parseInt(entry.getKey()), Integer.parseInt(entry.getValue()));
+        }
         PlotterHead plotterHead = new PlotterHead(
                 Integer.parseInt(config.get(headName).get("acceleration")),
                 Integer.parseInt(config.get(headName).get("speed")),
-                Double.parseDouble(config.get(headName).get("head_up"))
+                Double.parseDouble(config.get(headName).get("head_up")),
+                confRadiuses
         );
         return new CalcParameters(plotterHead, getLastModified(pathToDxfFiles));
     }
@@ -124,6 +129,8 @@ public class Model {
                 new Point(0, 0)
         ));
         continuousRuns.add(run);
+
+
 
         fireListeners();
     }

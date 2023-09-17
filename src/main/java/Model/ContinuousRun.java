@@ -21,6 +21,14 @@ public class ContinuousRun implements Run, Cloneable {
         }
     }
 
+    public double getRunTime() {
+        return 0;
+    }
+
+    public double getRunLength() {
+        return 0;
+    }
+
     public Point getLastPoint() {
         return dxfPrimitives.get(dxfPrimitives.size() - 1).getEndPoint();
     }
