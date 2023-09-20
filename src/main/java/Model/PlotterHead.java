@@ -51,7 +51,7 @@ public class PlotterHead {
         double decelerationFullDistance = (Math.pow(maxSpeed, 2) - Math.pow(endSpeed, 2)) / (2 * this.acceleration);
 
         if (accelerationFullDistance + decelerationFullDistance > length) {
-            double splitDistance = length / 2 + Math.pow(endSpeed, 2) / 4 * this.acceleration;
+            double splitDistance = (length / 2) + (Math.pow(endSpeed, 2) / (4 * this.acceleration));
             double splitSpeed = Math.sqrt(2 * acceleration * splitDistance);
             double accelTime = (splitSpeed - startSpeed) / this.acceleration;
             double decelTime = (splitSpeed - endSpeed) / this.acceleration;

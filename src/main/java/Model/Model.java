@@ -106,13 +106,11 @@ public class Model {
         List<ContinuousRun> continuousRuns = new ArrayList<>();
         ContinuousRun run = new ContinuousRun(calcParameters.getPlotterHead());
         for (DXFPrimitive primitive : collection) {
-
-            System.out.println(primitive.getType() + " " + primitive.getStartPointAngle() + " " + primitive.getEndPointAngle());
-
             if (!run.addPrimitive(primitive)) {
                 continuousRuns.add(run.clone());
                 Point lastPoint = run.getLastPoint();
                 run = new ContinuousRun(calcParameters.getPlotterHead());
+                run.setIdleRun(true);
                 run.addPrimitive(new Line(
                         lastPoint,
                         primitive.getStartPoint()
@@ -124,6 +122,7 @@ public class Model {
         }
         continuousRuns.add(run);
         run = new ContinuousRun(calcParameters.getPlotterHead());
+        run.setIdleRun(true);
         run.addPrimitive(new Line(
                 collection.get(collection.size() - 1).getEndPoint(),
                 new Point(0, 0)
@@ -131,15 +130,35 @@ public class Model {
         continuousRuns.add(run);
 
         // Start/end/max speed for primitives calculation.
-        double totalTime = 0;
+        int objectNum = collection.size();
+        double totalLength = 0;
+        int stopsNum = 0;
+        double idleRunLength = 0;
+        double headUpTime = 0;
+        double workRunTime = 0;
+        double idleRunTime = 0;
         for (ContinuousRun continuousRun : continuousRuns) {
-            System.out.println(continuousRun.getRunTime(calcParameters.getPlotterHead().getSpeedsOnRadiuses(),
-                    calcParameters.getPlotterHead()));
-            totalTime += continuousRun.getRunTime(calcParameters.getPlotterHead().getSpeedsOnRadiuses(),
-                    calcParameters.getPlotterHead()) + calcParameters.getPlotterHead().getHeadUp();
+            stopsNum++;
+            headUpTime += calcParameters.getPlotterHead().getHeadUp();
+            if (continuousRun.isIdleRun()) {
+                idleRunLength += continuousRun.getRunLength();
+                idleRunTime += continuousRun.getRunTime(calcParameters.getPlotterHead().getSpeedsOnRadiuses(),
+                        calcParameters.getPlotterHead());
+            } else {
+                totalLength += continuousRun.getRunLength();
+                workRunTime += continuousRun.getRunTime(calcParameters.getPlotterHead().getSpeedsOnRadiuses(),
+                        calcParameters.getPlotterHead());
+            }
         }
-        System.out.println(totalTime);
 
+        data.put("objectsNum", String.valueOf(objectNum));
+        data.put("totalLength", String.format("%.2f", totalLength / 1000) + " м");
+        data.put("stopsNum", String.valueOf(stopsNum));
+        data.put("idleRunLength", String.format("%.2f", idleRunLength / 1000) + " м");
+        data.put("headUpTime", String.format("%.2f", headUpTime / 60) + " мин.");
+        data.put("idleRunTime", String.format("%.2f", idleRunTime / 60) + " мин.");
+        data.put("workRunTime", String.format("%.2f", workRunTime / 60) + " мин.");
+        data.put("totalTime", String.format("%.2f", (idleRunTime + workRunTime + headUpTime) / 60) + " мин.");
 
         fireListeners();
     }

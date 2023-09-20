@@ -6,6 +6,15 @@ import java.util.Map;
 
 public class ContinuousRun implements Run, Cloneable {
     private final List<DXFPrimitive> dxfPrimitives = new ArrayList<>();
+    private boolean idleRun = false;
+
+    public boolean isIdleRun() {
+        return idleRun;
+    }
+
+    public void setIdleRun(boolean idleRun) {
+        this.idleRun = idleRun;
+    }
 
     public ContinuousRun(PlotterHead head) {
     }
@@ -36,7 +45,10 @@ public class ContinuousRun implements Run, Cloneable {
     }
 
     public double getRunLength() {
-        return 0;
+        double length = 0;
+        for (DXFPrimitive primitive : dxfPrimitives)
+            length += primitive.getLength();
+        return length;
     }
 
     public Point getLastPoint() {

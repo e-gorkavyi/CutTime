@@ -9,7 +9,6 @@ import java.io.IOException;
 public class CutTime implements DataRefreshListener {
     private JPanel mainPanel;
     private JButton closeButton;
-    private JButton preferences;
     private JLabel objectsNum;
     private JLabel objectsLen;
     private JLabel stopsNum;
@@ -42,6 +41,8 @@ public class CutTime implements DataRefreshListener {
 
     public static void main(String[] args) throws IOException {
         FlatLightLaf.setup();
+
+
 
         JFrame frame = new JFrame("Plotter cut time");
         frame.setContentPane(new CutTime().mainPanel);
