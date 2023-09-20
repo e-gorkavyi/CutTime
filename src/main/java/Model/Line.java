@@ -90,4 +90,9 @@ public class Line extends DXFPrimitive {
 
         return lineAngle(this);
     }
+
+    @Override
+    double getRadius() {
+        return -1;
+    }
 }

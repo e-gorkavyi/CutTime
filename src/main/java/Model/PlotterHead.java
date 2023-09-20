@@ -1,5 +1,6 @@
 package Model;
 
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 
 public class PlotterHead {
@@ -32,10 +33,35 @@ public class PlotterHead {
         return speedsOnRadiuses;
     }
 
-    public double getRunTime(double startSpeed, double endSpeed, double length) {
-        double accelerationDistance = (acceleration * Math.pow(speed / acceleration, 2)) / 2;
-        double decelerationDistance;
+    public double getRunTime(double startSpeed, double maxSpeed, double endSpeed, double length, double radius) {
+        double runTime = 0;
+//        int nearRadiusIndex = 0;
+//        double maxSpeed;
+//        if (radius < 0){
+//            maxSpeed = this.speed;
+//        } else {
+//            for (Map.Entry<Integer, Integer> entry : this.speedsOnRadiuses.entrySet()) {
+//                if (Math.abs(radius - entry.getKey()) < nearRadiusIndex)
+//                    nearRadiusIndex = Math.abs(nearRadiusIndex - entry.getKey());
+//            }
+//            maxSpeed = this.speedsOnRadiuses.get(nearRadiusIndex);
+//        }
 
-        return 0;
+        double accelerationFullDistance = (Math.pow(maxSpeed, 2) - Math.pow(startSpeed, 2)) / (2 * this.acceleration);
+        double decelerationFullDistance = (Math.pow(maxSpeed, 2) - Math.pow(endSpeed, 2)) / (2 * this.acceleration);
+
+        if (accelerationFullDistance + decelerationFullDistance > length) {
+            double splitDistance = length / 2 + Math.pow(endSpeed, 2) / 4 * this.acceleration;
+            double splitSpeed = Math.sqrt(2 * acceleration * splitDistance);
+            double accelTime = (splitSpeed - startSpeed) / this.acceleration;
+            double decelTime = (splitSpeed - endSpeed) / this.acceleration;
+            runTime = accelTime + decelTime;
+        }else {
+            runTime = ((maxSpeed - startSpeed) / this.acceleration) +
+                    (length - accelerationFullDistance - decelerationFullDistance) / maxSpeed +
+                    ((maxSpeed - endSpeed) / this.acceleration);
+        }
+
+        return runTime;
     }
 }

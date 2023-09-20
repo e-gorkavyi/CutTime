@@ -130,6 +130,15 @@ public class Model {
         ));
         continuousRuns.add(run);
 
+        // Start/end/max speed for primitives calculation.
+        double totalTime = 0;
+        for (ContinuousRun continuousRun : continuousRuns) {
+            System.out.println(continuousRun.getRunTime(calcParameters.getPlotterHead().getSpeedsOnRadiuses(),
+                    calcParameters.getPlotterHead()));
+            totalTime += continuousRun.getRunTime(calcParameters.getPlotterHead().getSpeedsOnRadiuses(),
+                    calcParameters.getPlotterHead()) + calcParameters.getPlotterHead().getHeadUp();
+        }
+        System.out.println(totalTime);
 
 
         fireListeners();

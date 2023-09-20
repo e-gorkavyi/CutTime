@@ -87,6 +87,8 @@ public abstract class DXFPrimitive {
     abstract Point getEndPoint();
 
     abstract double getLength();
+
+    abstract double getRadius();
 }
 
 enum PrimitiveType {
