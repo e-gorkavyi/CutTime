@@ -30,6 +30,10 @@
             <artifactId>ini4j</artifactId>
             <version>0.5.4</version>
         </dependency>
-
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.13.0</version>
+        </dependency>
     </dependencies>
 </project>

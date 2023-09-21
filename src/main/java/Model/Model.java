@@ -4,10 +4,17 @@ import Controller.DataRefreshListener;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.*;
+import org.apache.commons.io.FileUtils;
 
 public class Model {
-    private Map<String, String> data = new HashMap<>() {{
+    private final Map<String, String> data = new HashMap<>() {{
+        put("profileName", "");
         put("objectsNum", "");
         put("totalLength", "");
         put("stopsNum", "");
@@ -17,7 +24,8 @@ public class Model {
         put("workRunTime", "");
         put("totalTime", "");
     }};
-    private ArrayList<DataRefreshListener> listeners = new ArrayList<>();
+    private final ArrayList<DataRefreshListener> listeners = new ArrayList<>();
+    private String pathToDxfFiles;
 
     public static File getLastModified(String directoryFilePath) {
         File directory = new File(directoryFilePath);
@@ -53,16 +61,13 @@ public class Model {
         }
     }
 
-    public double angleDif(double angle1, double angle2) {
-        double dif = Math.abs(angle1 - angle2);
-        if (dif > 180)
-            dif = 360 - dif;
-        return dif;
-    }
-
-    public CalcParameters configParse(String headName) throws IOException {
-        Map<String, Map<String, String>> config = IniParser.parse(new File("config.ini"));
-        String pathToDxfFiles = config.get("paths").get("input_dir");
+    public CalcParameters configParse(String headName) throws IOException, URISyntaxException {
+        File file = new File(Model.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+        Path basePath = Path.of(file.getParent());
+        Path configFile = basePath.resolve("config.ini");
+        System.out.println(configFile);
+        Map<String, Map<String, String>> config = IniParser.parse(new File(configFile.toString()));
+        pathToDxfFiles = config.get("paths").get("input_dir");
         Map<Integer, Integer> confRadiuses = new HashMap<>();
         for (Map.Entry<String, String> entry : config.get("radius_speed").entrySet()) {
             confRadiuses.put(Integer.parseInt(entry.getKey()), Integer.parseInt(entry.getValue()));
@@ -73,6 +78,7 @@ public class Model {
                 Double.parseDouble(config.get(headName).get("head_up")),
                 confRadiuses
         );
+        this.data.put("profileName", config.get(headName).get("profile_name"));
         return new CalcParameters(plotterHead, getLastModified(pathToDxfFiles));
     }
 
@@ -81,12 +87,18 @@ public class Model {
         return dxfParser.getDxfPrimitiveList();
     }
 
-    public void calculate(String headName) throws IOException {
+    public void removeFiles() throws IOException {
+        FileUtils.cleanDirectory(new File(pathToDxfFiles));
+    }
+
+    public void calculate(String headName) throws IOException, URISyntaxException {
 
 //        Request data. Calculation logic.
         CalcParameters calcParameters = configParse(headName);
 
         List<DXFPrimitive> collection = this.readDXF(calcParameters);
+
+        removeFiles();
 
         // Passes for reverse wrong-oriented arcs.
         DXFPrimitive current, next;
@@ -151,14 +163,15 @@ public class Model {
             }
         }
 
+
         data.put("objectsNum", String.valueOf(objectNum));
-        data.put("totalLength", String.format("%.2f", totalLength / 1000) + " м");
+        data.put("totalLength", String.format("%.2f", BigDecimal.valueOf((totalLength / 1000)).setScale(2, RoundingMode.HALF_EVEN).doubleValue()) + " м");
         data.put("stopsNum", String.valueOf(stopsNum));
-        data.put("idleRunLength", String.format("%.2f", idleRunLength / 1000) + " м");
-        data.put("headUpTime", String.format("%.2f", headUpTime / 60) + " мин.");
-        data.put("idleRunTime", String.format("%.2f", idleRunTime / 60) + " мин.");
-        data.put("workRunTime", String.format("%.2f", workRunTime / 60) + " мин.");
-        data.put("totalTime", String.format("%.2f", (idleRunTime + workRunTime + headUpTime) / 60) + " мин.");
+        data.put("idleRunLength", String.format("%.2f", BigDecimal.valueOf(idleRunLength / 1000).setScale(2, RoundingMode.HALF_EVEN).doubleValue()) + " м");
+        data.put("headUpTime", String.format("%.2f", BigDecimal.valueOf(headUpTime / 60).setScale(2, RoundingMode.HALF_EVEN).doubleValue()) + " мин.");
+        data.put("idleRunTime", String.format("%.2f", BigDecimal.valueOf(idleRunTime / 60).setScale(2, RoundingMode.HALF_EVEN).doubleValue()) + " мин.");
+        data.put("workRunTime", String.format("%.2f", BigDecimal.valueOf(workRunTime / 60).setScale(2, RoundingMode.HALF_EVEN).doubleValue()) + " мин.");
+        data.put("totalTime", String.format("%.2f", BigDecimal.valueOf((idleRunTime + workRunTime + headUpTime) / 60).setScale(2, RoundingMode.HALF_EVEN).doubleValue()) + " мин.");
 
         fireListeners();
     }

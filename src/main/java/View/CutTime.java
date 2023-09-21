@@ -5,6 +5,7 @@ import Model.Model;
 import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.*;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 public class CutTime implements DataRefreshListener {
     private JPanel mainPanel;
@@ -17,11 +18,13 @@ public class CutTime implements DataRefreshListener {
     private JLabel idleTime;
     private JLabel workTime;
     private JLabel totalTime;
+    private JLabel profiliName;
     private static Model model = new Model();
 
     @Override
     public void onDataChanged() {
 //        reading data from Model and refresh labels
+        this.profiliName.setText(model.getData().get("profileName"));
         this.objectsNum.setText(model.getData().get("objectsNum"));
         this.objectsLen.setText(model.getData().get("totalLength"));
         this.stopsNum.setText(model.getData().get("stopsNum"));
@@ -39,7 +42,7 @@ public class CutTime implements DataRefreshListener {
         model.addListener(this);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         FlatLightLaf.setup();
 
 
@@ -51,7 +54,15 @@ public class CutTime implements DataRefreshListener {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        model.calculate("carton"); //in work args[0]
+        if (args.length < 1) {
+            try {
+                model.calculate("carton"); //in work args[0]
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        else
+            model.calculate(args[0]);
     }
 
     public void setObjNum(int num) {

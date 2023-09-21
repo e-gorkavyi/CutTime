@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CutTime:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CutTime_jar</output-path>
+    <root id="archive" name="CutTime.jar">
+      <element id="module-output" name="CutTime" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-io/commons-io/2.13.0/commons-io-2.13.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/formdev/flatlaf/3.1.1/flatlaf-3.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/ini4j/ini4j/0.5.4/ini4j-0.5.4.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: com.formdev:flatlaf:3.1.1" />
+      <element id="library" level="project" name="Maven: commons-io:commons-io:2.13.0" />
+      <element id="library" level="project" name="Maven: org.ini4j:ini4j:0.5.4" />
+    </root>
+  </artifact>
+</component>
